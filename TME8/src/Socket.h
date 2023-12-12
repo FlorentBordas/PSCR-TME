@@ -4,9 +4,13 @@
 #include <netinet/ip.h>
 #include <string>
 #include <iosfwd>
+#include <cstring>
+#include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <string>
 
 namespace pr {
 
@@ -21,51 +25,26 @@ public :
 	Socket(int fd):fd(fd){}
 
 	// tente de se connecter à l'hôte fourni
-	void connect(const std::string & host, int port){
-		int sfd;
-		struct addrinfo hints;
-		struct addrinfo *result;
-	
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family= AF_UNSPEC;
-		hints.ai_socktype= SOCK_STREAM;
-		hints.ai_flags= AI_PASSIVE;
-		hints.ai_protocol= 0;
+	void connect(const std::string &host, short port);
 
-		s = getaddrinfo(host, port,&hints, &result);
-
-/*
-		for(rp = result; rp != NULL; rp = rp->ai_next){
-			sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-			if(sfd)
-				continue;
-
-			if(bind(sfd, rp->ai_addr, rp->ai_addrlen) == 0)
-				break;
-
-			close(sfd);
-		}
-
-		freeaddrinfo(result);
-		*/
-
-		this->fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-		connect(this->fd,result->ai_addr,result->ai_addrlen);
-		freeaddrinfo(result);
-	}
-
-	void connect(in_addr ipv4, int port){
-		
-	}
+    void connect(sockaddr *addr, size_t addr_len);
 
 
-	bool isOpen() const {return fd != -1;}
-	int getFD() { return fd ;}
+	bool isOpen() const {
+        return fd != -1;
+    }
 
-	void close();
+	int getFD() {
+        return fd ;
+    }
+
+    void close(){
+        shutdown(fd, SHUT_RDWR);
+        ::close(fd);
+    }
 };
 
-std::ostream & operator<< (std::ostream & os	, struct sockaddr_in * addr);
+
 
 }
 
